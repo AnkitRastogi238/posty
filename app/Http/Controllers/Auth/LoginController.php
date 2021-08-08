@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
@@ -11,23 +12,25 @@ class LoginController extends Controller
     {
         $this->middleware(['guest']);
     }
-    
+
     public function index()
     {
         return view('auth.login');
     }
 
-    public function store(Request $request)
+    public function validateLogin(Request $request)
     {
         $this->validate($request, [
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        if (!auth()->attempt($request->only('email', 'password'), $request->remember)) {
-            return back()->with('status', 'Invalid login details');
+        if (Auth::attempt(['email' => $request->email, 'password' => $request])) {
+            if (Auth::user()->email_verified_at == null) {
+                Auth::logout();
+                return redirect('user.login')->with('message', 'Plaese verify your email to continue');
+            }
+            return redirect(route('dashboard'));
         }
-
-        return redirect()->route('dashboard');
     }
 }
