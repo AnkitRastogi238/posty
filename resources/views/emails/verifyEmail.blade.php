@@ -7,9 +7,9 @@
     <title>Document</title>
 </head>
 <body>
-    <h2>Welcome to our Website{{ $user->name }}</h2>
+    <h2>Welcome to our Website {{ $user->name }}</h2>
     <p>
-        Click <a href="/user/verify/{{$user->verifyUser->token}}">here</a> to verify email
+        Click <a href="{{ url('/user/verify/'.$user->verifyUser->token) }}">here</a> to verify email
     </p>
 </body>
 </html>

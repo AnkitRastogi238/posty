@@ -24,12 +24,13 @@ Route::get('/users/{user:username}/posts', [UserPostController::class, 'index'])
 
 Route::post('/logout', [LogoutController::class, 'store'])->name('logout');
 
-Route::get('/login', [LoginController::class, 'index'])->name('login');
-Route::post('/login', [LoginController::class, 'validateLogin']);
+Route::get('/login', [LoginController::class, 'index'])->name('user.login');
+Route::post('/login/validate', [LoginController::class, 'validateLogin'])->name('user.validate');
+Route::get('/user/verify/{token}', [LoginController::class, 'verifyEmail'])->name('user.verify');
 
 Route::get('/register', [RegisterController::class, 'index'])->name('register');
 Route::post('/register', [RegisterController::class, 'store']);
-Route::get('/user/verify/{token}', [RegisterController::class, 'verifyEmail'])->name('user.verify');
+
 
 Route::get('/posts', [PostController::class, 'index'])->name('posts');
 Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
@@ -38,14 +39,3 @@ Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.
 
 Route::post('/posts/{post}/likes', [PostLikeController::class, 'store'])->name('posts.likes');
 Route::delete('/posts/{post}/likes', [PostLikeController::class, 'destroy'])->name('posts.likes');
-
-Route::get('/email/verify', function () {
-    return view('auth.verify-email');
-})->middleware('auth')->name('verification.notice');
-
-
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill();
-
-    return redirect('/home');
-})->middleware(['auth', 'signed'])->name('verification.verify');
