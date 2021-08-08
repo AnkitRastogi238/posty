@@ -13,6 +13,11 @@
                     {{ session('success') }}
                 </div>
             @endif
+            @if (session('message'))
+                <div class="bg-red-500 p-4 rounded-lg mb-6 text-white text-center">
+                    {{ session('message') }}
+                </div>
+            @endif
             <form action="{{ route('user.validate') }}" method="post">
                 @csrf
 
