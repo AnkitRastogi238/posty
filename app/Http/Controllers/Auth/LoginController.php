@@ -2,11 +2,17 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Models\User;
 use App\Models\VerifyUser;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Models\ResetPassword;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Controller;
+use App\Mail\ForgetPasswordMail;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class LoginController extends Controller
 {
@@ -51,6 +57,71 @@ class LoginController extends Controller
             }
         } else {
             return redirect(route('user.login'))->with('error', 'Something went wrong!!');
+        }
+    }
+
+    public function getForgetPassword()
+    {
+        return view('auth.forget_password');
+    }
+    public function postForgetPassword(Request $request)
+    {
+        $this->validate($request, [
+            'email' => 'required|email',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return redirect()->back()->with('error', 'User not found.');
+        } else {
+            $reset_code = Str::random(200);
+            ResetPassword::create([
+                'user_id' => $user->id,
+                'reset_code' => $reset_code
+            ]);
+
+            Mail::to($user->email)->send(new ForgetPasswordMail($user->name, $reset_code));
+
+            return redirect()->back()->with('success', 'We have sent you a password reset link.Please check your mail.');
+        }
+    }
+
+    public function getResetPassword($reset_code)
+    {
+        $password_reset_code = ResetPassword::where('reset_code', $reset_code)->first();
+        if (!$password_reset_code || Carbon::now()->subMinutes(50) > $password_reset_code->created_at) {
+            return redirect()->route('getForgetPassword')->with('error', 'Invalid password reset link or link expired');
+        } else {
+            return view('emails.reset_password', compact('reset_code'));
+        }
+    }
+
+    public function postResetPassword($reset_code, Request $request)
+    {
+        $password_reset_code = ResetPassword::where('reset_code', $reset_code)->first();
+
+        if (!$password_reset_code || Carbon::now()->subMinutes(50) > $password_reset_code->created_at) {
+            return redirect()->route('getForgetPassword')->with('error', 'Invalid password reset link or link expired');
+        } else {
+            $request->validate([
+                'email' => 'required|email',
+                'password' => 'required',
+                'password_confirmation' => 'required|same:password',
+            ]);
+
+            $user = User::find($password_reset_code->user_id);
+
+            if ($user->email != $request->email) {
+                return redirect()->back()->with('error', 'Enter Correct Email');
+            } else {
+                $password_reset_code->delete();
+                $user->update([
+                    'password' => Hash::make($request->password)
+                ]);
+
+                return redirect()->route('user.login')->with('success', 'Password succesfully reset');
+            }
         }
     }
 }

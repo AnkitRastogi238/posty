@@ -3,24 +3,9 @@
 @section('content')
     <div class="flex justify-center">
         <div class="w-4/12 bg-white p-6 rounded-lg">
-            @if (session('error'))
-                <div class="bg-red-500 p-4 rounded-lg mb-6 text-white text-center">
-                    {{ session('error') }}
-                </div>
-            @endif
-            @if (session('success'))
-                <div class="bg-red-500 p-4 rounded-lg mb-6 text-white text-center">
-                    {{ session('success') }}
-                </div>
-            @endif
-            @if (session('message'))
-                <div class="bg-red-500 p-4 rounded-lg mb-6 text-white text-center">
-                    {{ session('message') }}
-                </div>
-            @endif
-            <form action="{{ route('user.validate') }}" method="post">
+            <form action="{{ route('postResetPassword',$reset_code) }}" method="post">
                 @csrf
-
+                
                 <div class="mb-4">
                     <label for="email" class="sr-only">Email</label>
                     <input type="text" name="email" id="email" placeholder="Your email" class="bg-gray-100 border-2 w-full p-4 rounded-lg @error('email') border-red-500 @enderror" value="{{ old('email') }}">
@@ -44,16 +29,18 @@
                 </div>
 
                 <div class="mb-4">
-                    <div class="flex items-center">
-                        <input type="checkbox" name="remember" id="remember" class="mr-2">
-                        <label for="remember">Remember me</label>
-                    </div>
-                </div>
+                    <label for="password_confirmation" class="sr-only">Confirm Password</label>
+                    <input type="password" name="password_confirmation" id="password_confirmation" placeholder="Repeat your password" class="bg-gray-100 border-2 w-full p-4 rounded-lg @error('password_confirmation') border-red-500 @enderror" value="">
 
-                <div class="mb-4">
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-3 rounded font-medium w-full">Login</button>
+                    @error('password_confirmation')
+                        <div class="text-red-500 mt-2 text-sm">
+                            {{ $message }}
+                        </div>
+                    @enderror
+                    </div>
+                <div>
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-3 rounded font-medium w-full">Submit</button>
                 </div>
-                <div class><a href="{{route('getForgetPassword')}}">Forgot Password ?</a></div>
             </form>
         </div>
     </div>
